@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Used only by the packaged (MSIX) build: dotnet build -c Release -p:Packaged=true -->
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  xmlns:desktop="http://schemas.microsoft.com/appx/manifest/desktop/windows10"
+  xmlns:com="http://schemas.microsoft.com/appx/manifest/com/windows10"
+  xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
+  IgnorableNamespaces="uap rescap desktop com uap3">
+
+  <!-- For the Store, replace Name/Publisher with the values Partner Center gives you.
+       Bump Version whenever this file changes, or Windows won't re-register the package. -->
+  <Identity Name="WindowsJournal" Publisher="CN=eawo2k4" Version="0.9.13.0" />
+
+  <Properties>
+    <DisplayName>Journal</DisplayName>
+    <PublisherDisplayName>eawo2k4</PublisherDisplayName>
+    <Logo>Assets\Package\StoreLogo.png</Logo>
+  </Properties>
+
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.19041.0" MaxVersionTested="10.0.26100.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="x-generate" />
+  </Resources>
+
+  <Applications>
+    <Application Id="App" Executable="$targetnametoken$.exe" EntryPoint="$targetentrypoint$">
+      <uap:VisualElements
+        DisplayName="Journal"
+        Description="A private place to write about your days."
+        BackgroundColor="transparent"
+        Square150x150Logo="Assets\Package\Square150x150Logo.png"
+        Square44x44Logo="Assets\Package\Square44x44Logo.png">
+        <uap:DefaultTile Wide310x150Logo="Assets\Package\Wide310x150Logo.png" />
+        <uap:SplashScreen Image="Assets\Package\SplashScreen.png" />
+      </uap:VisualElements>
+
+      <Extensions>
+        <!-- Lets a click on a reminder notification open (or come back to) Journal. -->
+        <desktop:Extension Category="windows.toastNotificationActivation">
+          <desktop:ToastNotificationActivation ToastActivatorCLSID="6F2C7D31-5E1B-4C8A-9B7E-3A1D4C2B8E90" />
+        </desktop:Extension>
+        <com:Extension Category="windows.comServer">
+          <com:ComServer>
+            <com:ExeServer Executable="WindowsJournal.exe" Arguments="----AppNotificationActivated:" DisplayName="Journal reminders">
+              <com:Class Id="6F2C7D31-5E1B-4C8A-9B7E-3A1D4C2B8E90" />
+            </com:ExeServer>
+            <!-- The Widgets board starts this windowless helper for widget content (see Widgets\WidgetHost.cs). -->
+            <com:ExeServer Executable="WindowsJournal.exe" Arguments="-RegisterProcessAsComServer" DisplayName="Journal widget">
+              <com:Class Id="9C1E4B7A-3D2F-4E8B-A6C5-71F0D2B9E4A3" DisplayName="Journal widget provider" />
+            </com:ExeServer>
+          </com:ComServer>
+        </com:Extension>
+
+        <!-- windowsjournal://new opens a new entry; the widget's Write button uses it. -->
+        <uap:Extension Category="windows.protocol">
+          <uap:Protocol Name="windowsjournal">
+            <uap:DisplayName>Journal</uap:DisplayName>
+          </uap:Protocol>
+        </uap:Extension>
+
+        <!-- Share to Journal: text, links and pictures from other apps become a new entry. -->
+        <uap:Extension Category="windows.shareTarget">
+          <uap:ShareTarget Description="Add to your journal">
+            <uap:SupportedFileTypes>
+              <uap:FileType>.jpg</uap:FileType>
+              <uap:FileType>.jpeg</uap:FileType>
+              <uap:FileType>.png</uap:FileType>
+              <uap:FileType>.heic</uap:FileType>
+              <uap:FileType>.webp</uap:FileType>
+              <uap:FileType>.gif</uap:FileType>
+            </uap:SupportedFileTypes>
+            <uap:DataFormat>Text</uap:DataFormat>
+            <uap:DataFormat>URI</uap:DataFormat>
+            <uap:DataFormat>Bitmap</uap:DataFormat>
+          </uap:ShareTarget>
+        </uap:Extension>
+
+        <!-- Two widgets for the Widgets board and lock screen: today's prompt, and writing progress.
+             Not IsCustomizable: on build 26340 the board opens its Customize window but never calls the provider. -->
+        <uap3:Extension Category="windows.appExtension">
+          <uap3:AppExtension Name="com.microsoft.windows.widgets" DisplayName="Journal" Id="JournalWidgets" PublicFolder="Public">
+            <uap3:Properties>
+              <WidgetProvider>
+                <ProviderIcons>
+                  <Icon Path="Assets\Widget\Icon.png" />
+                </ProviderIcons>
+                <Activation>
+                  <CreateInstance ClassId="9C1E4B7A-3D2F-4E8B-A6C5-71F0D2B9E4A3" />
+                </Activation>
+                <Definitions>
+                  <Definition Id="Journal_Prompt"
+                              DisplayName="Journal prompt"
+                              Description="Today's writing prompt, ready when you are."
+                              AllowMultiple="false">
+                    <Capabilities>
+                      <Capability>
+                        <Size Name="small" />
+                      </Capability>
+                      <Capability>
+                        <Size Name="medium" />
+                      </Capability>
+                    </Capabilities>
+                    <ThemeResources>
+                      <Icons>
+                        <Icon Path="Assets\Widget\Icon.png" />
+                      </Icons>
+                      <Screenshots>
+                        <Screenshot Path="Assets\Widget\Prompt-light.png" DisplayAltText="Journal prompt widget with a writing prompt and a Write button" />
+                      </Screenshots>
+                      <DarkMode>
+                        <Screenshots>
+                          <Screenshot Path="Assets\Widget\Prompt-dark.png" DisplayAltText="Journal prompt widget with a writing prompt and a Write button" />
+                        </Screenshots>
+                      </DarkMode>
+                      <LightMode>
+                        <Screenshots>
+                          <Screenshot Path="Assets\Widget\Prompt-light.png" DisplayAltText="Journal prompt widget with a writing prompt and a Write button" />
+                        </Screenshots>
+                      </LightMode>
+                    </ThemeResources>
+                  </Definition>
+                  <!-- The ID dates from when this only showed a streak; pinned widgets depend on it. -->
+                  <Definition Id="Journal_Streak"
+                              DisplayName="Journal progress"
+                              Description="The days you've written this week, and your streak."
+                              AllowMultiple="false">
+                    <Capabilities>
+                      <Capability>
+                        <Size Name="small" />
+                      </Capability>
+                      <Capability>
+                        <Size Name="medium" />
+                      </Capability>
+                    </Capabilities>
+                    <ThemeResources>
+                      <Icons>
+                        <Icon Path="Assets\Widget\Icon.png" />
+                      </Icons>
+                      <Screenshots>
+                        <Screenshot Path="Assets\Widget\Progress-light.png" DisplayAltText="Journal progress widget showing 3 days written this week" />
+                      </Screenshots>
+                      <DarkMode>
+                        <Screenshots>
+                          <Screenshot Path="Assets\Widget\Progress-dark.png" DisplayAltText="Journal progress widget showing 3 days written this week" />
+                        </Screenshots>
+                      </DarkMode>
+                      <LightMode>
+                        <Screenshots>
+                          <Screenshot Path="Assets\Widget\Progress-light.png" DisplayAltText="Journal progress widget showing 3 days written this week" />
+                        </Screenshots>
+                      </LightMode>
+                    </ThemeResources>
+                  </Definition>
+                </Definitions>
+              </WidgetProvider>
+            </uap3:Properties>
+          </uap3:AppExtension>
+        </uap3:Extension>
+      </Extensions>
+    </Application>
+  </Applications>
+
+  <Capabilities>
+    <rescap:Capability Name="runFullTrust" />
+    <!-- Dictation. Lists Journal under Settings > Privacy & security > Microphone, where access can be turned off. -->
+    <DeviceCapability Name="microphone" />
+  </Capabilities>
+</Package>

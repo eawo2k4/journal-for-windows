@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="WindowsJournal.Pages.SettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:WindowsJournal.Controls"
+    xmlns:toolkit="using:CommunityToolkit.WinUI.Controls">
+
+    <ScrollViewer>
+        <StackPanel MaxWidth="1000" Padding="36,24,36,36" Spacing="{StaticResource SettingsCardSpacing}">
+            <TextBlock Margin="0,0,0,8" Style="{StaticResource TitleTextBlockStyle}" Text="Settings" />
+
+            <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="Appearance" />
+            <toolkit:SettingsCard Description="Select which app theme to display" Header="App theme">
+                <toolkit:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE790;" />
+                </toolkit:SettingsCard.HeaderIcon>
+                <ComboBox x:Name="ThemeCombo" MinWidth="200" SelectionChanged="ThemeCombo_SelectionChanged">
+                    <ComboBoxItem Content="Light" Tag="Light" />
+                    <ComboBoxItem Content="Dark" Tag="Dark" />
+                    <ComboBoxItem Content="Use system setting" Tag="Default" />
+                </ComboBox>
+            </toolkit:SettingsCard>
+
+            <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="Focus areas" />
+            <toolkit:SettingsExpander x:Name="FocusExpander" Header="What you want to focus on" IsExpanded="True">
+                <toolkit:SettingsExpander.HeaderIcon>
+                    <FontIcon Glyph="&#xE7C1;" />
+                </toolkit:SettingsExpander.HeaderIcon>
+                <toolkit:SettingsExpander.Items>
+                    <toolkit:SettingsCard ContentAlignment="Left">
+                        <controls:FocusPicker x:Name="FocusPicker" Changed="FocusPicker_Changed" />
+                    </toolkit:SettingsCard>
+                </toolkit:SettingsExpander.Items>
+            </toolkit:SettingsExpander>
+
+            <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="Reminders" />
+            <InfoBar x:Name="ReminderInfo" IsClosable="False" IsOpen="False" Severity="Warning" />
+            <toolkit:SettingsExpander x:Name="ReminderExpander"
+                                      Description="A gentle nudge to write each day. Skipped on days you've already written."
+                                      Header="Daily reminder">
+                <toolkit:SettingsExpander.HeaderIcon>
+                    <FontIcon Glyph="&#xEA8F;" />
+                </toolkit:SettingsExpander.HeaderIcon>
+                <ToggleSwitch x:Name="ReminderToggle" Toggled="ReminderToggle_Toggled" />
+                <toolkit:SettingsExpander.Items>
+                    <toolkit:SettingsCard x:Name="ReminderTimeCard" Header="Time">
+                        <TimePicker x:Name="ReminderTimePicker" MinuteIncrement="15" SelectedTimeChanged="ReminderTime_Changed" />
+                    </toolkit:SettingsCard>
+                </toolkit:SettingsExpander.Items>
+            </toolkit:SettingsExpander>
+
+            <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="Privacy &amp; security" />
+            <InfoBar x:Name="HelloInfo" IsClosable="True" IsOpen="False" Severity="Warning" />
+            <toolkit:SettingsCard Description="Require Windows Hello (face, fingerprint, or PIN) to open your journal" Header="Lock with Windows Hello">
+                <toolkit:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE72E;" />
+                </toolkit:SettingsCard.HeaderIcon>
+                <ToggleSwitch x:Name="HelloToggle" Toggled="HelloToggle_Toggled" />
+            </toolkit:SettingsCard>
+            <toolkit:SettingsCard x:Name="LockNowCard"
+                                  ActionIcon="{x:Null}"
+                                  Click="LockNow_Click"
+                                  Description="Hide your journal until you unlock it again"
+                                  Header="Lock now"
+                                  IsClickEnabled="True">
+                <toolkit:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE785;" />
+                </toolkit:SettingsCard.HeaderIcon>
+            </toolkit:SettingsCard>
+            <toolkit:SettingsCard x:Name="AutoLockCard"
+                                  Description="Lock your journal when you've been away from it for a while"
+                                  Header="Lock automatically">
+                <toolkit:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE823;" />
+                </toolkit:SettingsCard.HeaderIcon>
+                <ComboBox x:Name="AutoLockCombo" MinWidth="200" SelectionChanged="AutoLockCombo_SelectionChanged">
+                    <ComboBoxItem Content="After 1 minute" Tag="1" />
+                    <ComboBoxItem Content="After 5 minutes" Tag="5" />
+                    <ComboBoxItem Content="After 15 minutes" Tag="15" />
+                    <ComboBoxItem Content="After 30 minutes" Tag="30" />
+                    <ComboBoxItem Content="Only when Journal opens" Tag="0" />
+                </ComboBox>
+            </toolkit:SettingsCard>
+            <toolkit:SettingsCard Description="Your entries and photos are encrypted with your Windows account and stored only on this PC. Other accounts can't read them, and nothing is uploaded."
+                                  Header="Encrypted on this PC">
+                <toolkit:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE72E;" />
+                </toolkit:SettingsCard.HeaderIcon>
+            </toolkit:SettingsCard>
+
+            <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="AI" />
+            <toolkit:SettingsCard x:Name="AiCard" Description="Checking for on-device AI…" Header="On-device AI">
+                <toolkit:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE82F;" />
+                </toolkit:SettingsCard.HeaderIcon>
+                <ToggleSwitch x:Name="AiToggle" Toggled="AiToggle_Toggled" />
+            </toolkit:SettingsCard>
+            <toolkit:SettingsCard Description="After you save an entry, AI detects its mood and topic and writes a short reflection, on this PC. You can always change them."
+                                  Header="Automatic insights">
+                <toolkit:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE8F2;" />
+                </toolkit:SettingsCard.HeaderIcon>
+                <ToggleSwitch x:Name="InsightsToggle" Toggled="InsightsToggle_Toggled" />
+            </toolkit:SettingsCard>
+            <!-- Built-in model (non-Copilot+ PCs): one-time download, like Paint's and Photos' AI features -->
+            <toolkit:SettingsCard x:Name="ModelCard"
+                                  Description="Journal uses a small AI model that runs on your own GPU or CPU."
+                                  Header="AI model">
+                <toolkit:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE896;" />
+                </toolkit:SettingsCard.HeaderIcon>
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                    <StackPanel x:Name="DownloadProgressPanel" MinWidth="200" VerticalAlignment="Center" Spacing="4" Visibility="Collapsed">
+                        <TextBlock x:Name="DownloadStageText" Style="{StaticResource CaptionTextBlockStyle}" />
+                        <ProgressBar x:Name="DownloadProgress" Maximum="100" />
+                    </StackPanel>
+                    <Button x:Name="DownloadButton" Click="DownloadModel_Click" Content="Download (about 4 GB)" Style="{StaticResource AccentButtonStyle}" />
+                    <Button x:Name="CancelDownloadButton" Click="CancelDownload_Click" Content="Cancel" Visibility="Collapsed" />
+                    <Button x:Name="RemoveModelButton" Click="RemoveModel_Click" Content="Remove" Visibility="Collapsed" />
+                </StackPanel>
+            </toolkit:SettingsCard>
+
+            <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="Your data" />
+            <!-- What's stored, not where: the folder is private app storage, like Windows' own apps use. -->
+            <toolkit:SettingsExpander x:Name="StorageExpander" Header="Storage">
+                <toolkit:SettingsExpander.HeaderIcon>
+                    <FontIcon Glyph="&#xEDA2;" />
+                </toolkit:SettingsExpander.HeaderIcon>
+                <toolkit:SettingsExpander.Items>
+                    <toolkit:SettingsCard Description="Your journal lives in Journal's private app storage, encrypted with your Windows account. For a copy you can open and keep, use Export."
+                                          Header="Where it's kept" />
+                    <toolkit:SettingsCard Click="OpenFolder_Click"
+                                          Description="Shows the encrypted files. They can only be read by Journal."
+                                          Header="Open folder"
+                                          IsClickEnabled="True">
+                        <toolkit:SettingsCard.ActionIcon>
+                            <FontIcon Glyph="&#xE8A7;" />
+                        </toolkit:SettingsCard.ActionIcon>
+                    </toolkit:SettingsCard>
+                </toolkit:SettingsExpander.Items>
+            </toolkit:SettingsExpander>
+            <toolkit:SettingsExpander x:Name="BackupExpander"
+                                      Description="Keep encrypted copies of your journal in a folder you choose."
+                                      Header="Automatic backups">
+                <toolkit:SettingsExpander.HeaderIcon>
+                    <FontIcon Glyph="&#xE81C;" />
+                </toolkit:SettingsExpander.HeaderIcon>
+                <ToggleSwitch x:Name="BackupToggle" AutomationProperties.Name="Automatic backups" Toggled="BackupToggle_Toggled" />
+                <toolkit:SettingsExpander.Items>
+                    <toolkit:SettingsCard x:Name="BackupFolderCard" Header="Backup folder">
+                        <Button Click="ChooseBackupFolder_Click" Content="Choose folder" />
+                    </toolkit:SettingsCard>
+                    <toolkit:SettingsCard Header="How often">
+                        <ComboBox x:Name="BackupFrequencyCombo" MinWidth="200" SelectionChanged="BackupFrequency_SelectionChanged">
+                            <ComboBoxItem Content="Every day" Tag="1" />
+                            <ComboBoxItem Content="Every week" Tag="7" />
+                        </ComboBox>
+                    </toolkit:SettingsCard>
+                    <toolkit:SettingsCard x:Name="BackupNowCard" Header="Last backup">
+                        <Button x:Name="BackupNowButton" Click="BackupNow_Click" Content="Back up now" />
+                    </toolkit:SettingsCard>
+                    <toolkit:SettingsCard x:Name="RecoveryKeyCard"
+                                          Description="You'll need this to open your backups on another PC or after reinstalling Journal."
+                                          Header="Recovery key">
+                        <Button Click="ShowRecoveryKey_Click" Content="Show key" />
+                    </toolkit:SettingsCard>
+                </toolkit:SettingsExpander.Items>
+            </toolkit:SettingsExpander>
+            <toolkit:SettingsCard Description="Save a copy of all your entries and photos as a .zip file. This copy isn't encrypted, so keep it somewhere private."
+                                  Header="Export journal">
+                <toolkit:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xEDE1;" />
+                </toolkit:SettingsCard.HeaderIcon>
+                <Button x:Name="ExportButton" Click="Export_Click" Content="Export" />
+            </toolkit:SettingsCard>
+            <toolkit:SettingsCard Description="Add entries and photos from a backup or an export. Entries you already have are skipped, and nothing is deleted."
+                                  Header="Import a backup">
+                <toolkit:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE8B5;" />
+                </toolkit:SettingsCard.HeaderIcon>
+                <Button x:Name="ImportButton" Click="Import_Click" Content="Import" />
+            </toolkit:SettingsCard>
+            <InfoBar x:Name="DataInfo" IsClosable="True" IsOpen="False" />
+
+            <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="Help" />
+            <toolkit:SettingsCard Click="Tour_Click"
+                                  Description="A quick look at what Journal can do"
+                                  Header="Take the tour"
+                                  IsClickEnabled="True">
+                <toolkit:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE7BE;" />
+                </toolkit:SettingsCard.HeaderIcon>
+            </toolkit:SettingsCard>
+
+            <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="About" />
+            <toolkit:SettingsExpander x:Name="AboutExpander" Description="A private place for your thoughts" Header="Journal for Windows" IsExpanded="True">
+                <toolkit:SettingsExpander.HeaderIcon>
+                    <FontIcon Glyph="&#xE82D;" />
+                </toolkit:SettingsExpander.HeaderIcon>
+                <TextBlock x:Name="VersionText"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                           IsTextSelectionEnabled="True" />
+                <toolkit:SettingsExpander.Items>
+                    <toolkit:SettingsCard Description="Open source under the MIT license. Built with WinUI 3 and the Windows App SDK."
+                                          Header="Made by eawo2k4">
+                        <HyperlinkButton Content="GitHub" NavigateUri="https://github.com/eawo2k4" />
+                    </toolkit:SettingsCard>
+                </toolkit:SettingsExpander.Items>
+            </toolkit:SettingsExpander>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

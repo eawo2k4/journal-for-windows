@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="WindowsJournal.Pages.JournalPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:helpers="using:WindowsJournal.Helpers"
+    xmlns:models="using:WindowsJournal.Models"
+    NavigationCacheMode="Disabled">
+
+    <Page.Resources>
+        <CollectionViewSource x:Key="EntriesSource" IsSourceGrouped="True" />
+
+        <DataTemplate x:Key="EntryTemplate" x:DataType="models:JournalEntry">
+            <Grid Margin="0,4" ColumnSpacing="16"
+                  Padding="16"
+                  Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                  BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                  BorderThickness="1"
+                  CornerRadius="{StaticResource OverlayCornerRadius}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Spacing="4">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                   Text="{x:Bind DateDisplay}" />
+                        <TextBlock FontSize="12" Text="{x:Bind MoodEmoji}" />
+                        <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                   Text="{x:Bind CategoryText}"
+                                   Visibility="{x:Bind HasCategory}" />
+                        <FontIcon FontSize="12" Glyph="&#xE735;"
+                                  Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                  Visibility="{x:Bind IsFavorite}" />
+                    </StackPanel>
+                    <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}"
+                               Text="{x:Bind DisplayTitle}"
+                               TextTrimming="CharacterEllipsis" />
+                    <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                               MaxLines="3"
+                               Text="{x:Bind Preview}"
+                               TextTrimming="CharacterEllipsis"
+                               TextWrapping="Wrap" />
+                    <!-- AI reflection, under the entry -->
+                    <Grid Margin="0,6,0,0" ColumnSpacing="8" Visibility="{x:Bind HasReflection}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Margin="0,2,0,0" VerticalAlignment="Top" FontSize="12" Glyph="&#xE8F2;"
+                                  Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                        <TextBlock Grid.Column="1"
+                                   FontStyle="Italic"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                   MaxLines="2"
+                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                   Text="{x:Bind Reflection}"
+                                   TextTrimming="CharacterEllipsis"
+                                   TextWrapping="Wrap" />
+                    </Grid>
+                </StackPanel>
+                <Border Grid.Column="1" Width="88" Height="88"
+                        CornerRadius="{StaticResource ControlCornerRadius}"
+                        Visibility="{x:Bind HasPhoto}">
+                    <Image Source="{x:Bind helpers:Converters.ToImage(FirstPhoto)}" Stretch="UniformToFill" />
+                </Border>
+            </Grid>
+        </DataTemplate>
+    </Page.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Grid Margin="{StaticResource PageHeaderMargin}" ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+                <TextBlock x:Name="PageTitle" Style="{StaticResource TitleTextBlockStyle}" Text="Journal" />
+                <TextBlock x:Name="PageSubtitle"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                           Style="{StaticResource BodyTextBlockStyle}" />
+            </StackPanel>
+            <Button x:Name="NewEntryButton"
+                    AutomationProperties.Name="New entry"
+                    Grid.Column="1" VerticalAlignment="Center"
+                    Click="NewEntry_Click"
+                    Style="{StaticResource AccentButtonStyle}"
+                    ToolTipService.ToolTip="New entry (Ctrl+N)">
+                <Button.KeyboardAccelerators>
+                    <KeyboardAccelerator Key="N" Modifiers="Control" />
+                </Button.KeyboardAccelerators>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <FontIcon FontSize="16" Glyph="&#xE70F;" />
+                    <TextBlock Text="New entry" />
+                </StackPanel>
+            </Button>
+        </Grid>
+
+        <ListView x:Name="EntriesList"
+                  Grid.Row="1"
+                  Padding="24,8,24,36"
+                  IsItemClickEnabled="True"
+                  ItemClick="EntriesList_ItemClick"
+                  ItemTemplate="{StaticResource EntryTemplate}"
+                  ItemsSource="{Binding Source={StaticResource EntriesSource}}"
+                  SelectionMode="None">
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem" BasedOn="{StaticResource DefaultListViewItemStyle}">
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Setter Property="Padding" Value="0" />
+                    <Setter Property="Margin" Value="12,0" />
+                </Style>
+            </ListView.ItemContainerStyle>
+
+            <ListView.Header>
+                <StackPanel>
+                <StackPanel x:Name="SuggestionsPanel" Margin="12,0,12,8">
+                    <InfoBar x:Name="LoadProblemBar"
+                             Margin="0,16,0,0"
+                             IsClosable="True"
+                             IsOpen="False"
+                             Severity="Error"
+                             Title="Some saved entries couldn't be opened" />
+                    <!-- On this day -->
+                    <StackPanel x:Name="OnThisDayPanel" Visibility="Collapsed">
+                        <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="On this day" />
+                        <Button x:Name="OnThisDayButton"
+                                AutomationProperties.Name="Open your entry from this day"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Left"
+                                Padding="16"
+                                Click="OnThisDay_Click">
+                            <StackPanel Orientation="Horizontal" Spacing="16">
+                                <FontIcon FontSize="24" Glyph="&#xE81C;" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                                <StackPanel>
+                                    <TextBlock x:Name="OnThisDayTitle" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                    <TextBlock x:Name="OnThisDayPreview"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                               MaxLines="1" TextTrimming="CharacterEllipsis" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+
+                    <!-- Writing prompts -->
+                    <Grid Margin="1,28,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <TextBlock VerticalAlignment="Center" Style="{StaticResource BodyStrongTextBlockStyle}" Text="Suggestions for you" />
+                            <ProgressRing x:Name="PromptsRing" Width="16" Height="16" IsActive="False" />
+                            <TextBlock x:Name="PromptsBadge"
+                                       VerticalAlignment="Center"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                       Style="{StaticResource CaptionTextBlockStyle}"
+                                       Visibility="Collapsed" />
+                        </StackPanel>
+                        <Button x:Name="ShuffleButton"
+                                AutomationProperties.Name="New ideas"
+                                Grid.Column="1"
+                                Click="ShufflePrompts_Click"
+                                Style="{StaticResource SubtleButtonStyle}"
+                                ToolTipService.ToolTip="Show different suggestions">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon FontSize="14" Glyph="&#xE8B1;" />
+                                <TextBlock Text="New ideas" />
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+                    <ScrollViewer x:Name="PromptsScroller"
+                                  HorizontalScrollBarVisibility="Auto"
+                                  HorizontalScrollMode="Auto"
+                                  VerticalScrollMode="Disabled"
+                                  VerticalScrollBarVisibility="Disabled">
+                        <ItemsRepeater x:Name="PromptsRepeater" Margin="0,0,0,12">
+                            <ItemsRepeater.Layout>
+                                <StackLayout Orientation="Horizontal" Spacing="12" />
+                            </ItemsRepeater.Layout>
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate x:DataType="x:String">
+                                    <Button Width="240" Height="112"
+                                            Padding="16"
+                                            HorizontalContentAlignment="Left"
+                                            VerticalContentAlignment="Top"
+                                            AutomationProperties.Name="{x:Bind}"
+                                            Click="Prompt_Click"
+                                            Tag="{x:Bind}">
+                                        <StackPanel Spacing="8">
+                                            <FontIcon HorizontalAlignment="Left" FontSize="16" Glyph="&#xE82F;"
+                                                      Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                                            <TextBlock MaxLines="3" Text="{x:Bind}"
+                                                       TextTrimming="CharacterEllipsis" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
+                    </ScrollViewer>
+                </StackPanel>
+
+                <!-- Narrow the list by topic or mood -->
+                <StackPanel x:Name="FilterBar" Margin="12,0,12,12" Orientation="Horizontal" Spacing="8" Visibility="Collapsed">
+                    <ComboBox x:Name="TopicFilter"
+                              MinWidth="180"
+                              AutomationProperties.Name="Filter by topic"
+                              SelectionChanged="Filter_SelectionChanged" />
+                    <ComboBox x:Name="MoodFilter"
+                              MinWidth="140"
+                              AutomationProperties.Name="Filter by mood"
+                              SelectionChanged="Filter_SelectionChanged" />
+                    <Button x:Name="ClearFiltersButton"
+                            Click="ClearFilters_Click"
+                            Content="Clear filters"
+                            Style="{StaticResource SubtleButtonStyle}"
+                            Visibility="Collapsed" />
+                </StackPanel>
+                </StackPanel>
+            </ListView.Header>
+
+            <ListView.GroupStyle>
+                <GroupStyle HidesIfEmpty="True">
+                    <GroupStyle.HeaderTemplate>
+                        <DataTemplate x:DataType="models:EntryGroup">
+                            <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="{x:Bind Key}" />
+                        </DataTemplate>
+                    </GroupStyle.HeaderTemplate>
+                </GroupStyle>
+            </ListView.GroupStyle>
+        </ListView>
+
+        <!-- Empty state -->
+        <StackPanel x:Name="EmptyState"
+                    Grid.Row="1"
+                    Margin="36,0,36,96"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom"
+                    Spacing="8"
+                    Visibility="Collapsed">
+            <FontIcon x:Name="EmptyGlyph" FontSize="40" Glyph="&#xE82D;"
+                      Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+            <TextBlock x:Name="EmptyTitle" HorizontalAlignment="Center"
+                       Style="{StaticResource BodyStrongTextBlockStyle}" />
+            <TextBlock x:Name="EmptyBody" HorizontalAlignment="Center"
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                       TextAlignment="Center" TextWrapping="Wrap" />
+        </StackPanel>
+    </Grid>
+</Page>

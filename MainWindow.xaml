@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="WindowsJournal.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Journal">
+
+    <Window.SystemBackdrop>
+        <MicaBackdrop />
+    </Window.SystemBackdrop>
+
+    <Grid x:Name="RootGrid">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="48" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Custom title bar: app icon + name, caption buttons drawn by the system -->
+        <Grid x:Name="AppTitleBar" Padding="16,0,0,0" ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Image Width="16" Height="16" Source="ms-appx:///Assets/Journal-64.png" />
+            <TextBlock
+                x:Name="AppTitleText"
+                Grid.Column="1"
+                VerticalAlignment="Center"
+                Style="{StaticResource CaptionTextBlockStyle}"
+                Text="Journal" />
+        </Grid>
+
+        <NavigationView
+            x:Name="NavView"
+            Grid.Row="1"
+            IsBackButtonVisible="Auto"
+            IsBackEnabled="{x:Bind ContentFrame.CanGoBack, Mode=OneWay}"
+            IsSettingsVisible="True"
+            IsTitleBarAutoPaddingEnabled="False"
+            PaneDisplayMode="Auto"
+            BackRequested="NavView_BackRequested"
+            ItemInvoked="NavView_ItemInvoked">
+
+            <NavigationView.AutoSuggestBox>
+                <AutoSuggestBox
+                    x:Name="SearchBox"
+                    PlaceholderText="Search entries"
+                    QueryIcon="Find"
+                    TextChanged="SearchBox_TextChanged"
+                    QuerySubmitted="SearchBox_QuerySubmitted" />
+            </NavigationView.AutoSuggestBox>
+
+            <NavigationView.MenuItems>
+                <NavigationViewItem Content="Journal" Tag="journal" IsSelected="True">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE82D;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Content="Favorites" Tag="favorites">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE734;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Content="Insights" Tag="insights">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE9D2;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+            </NavigationView.MenuItems>
+
+            <Frame x:Name="ContentFrame" Navigated="ContentFrame_Navigated" />
+        </NavigationView>
+
+        <!-- Lock screen (Windows Hello) -->
+        <Grid
+            x:Name="LockOverlay"
+            Grid.Row="1"
+            Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
+            Visibility="Collapsed">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+                <FontIcon Glyph="&#xE72E;" FontSize="48" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                <TextBlock HorizontalAlignment="Center" Style="{StaticResource SubtitleTextBlockStyle}" Text="Your journal is locked" />
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Text="Use Windows Hello to unlock it." />
+                <Button
+                    x:Name="UnlockButton"
+                    Margin="0,12,0,0"
+                    HorizontalAlignment="Center"
+                    Click="UnlockButton_Click"
+                    Content="Unlock"
+                    Style="{StaticResource AccentButtonStyle}" />
+                <TextBlock
+                    x:Name="UnlockError"
+                    HorizontalAlignment="Center"
+                    Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                    Visibility="Collapsed" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>

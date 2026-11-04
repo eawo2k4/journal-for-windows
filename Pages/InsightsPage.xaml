@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="WindowsJournal.Pages.InsightsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:WindowsJournal.Pages">
+
+    <ScrollViewer>
+        <StackPanel Padding="36,24,36,36" Spacing="0">
+            <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="Insights" />
+            <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                       Text="Calculated on this PC from your entries." />
+
+            <!-- Weekly AI reflection -->
+            <Border x:Name="WeekCard" Margin="0,24,0,0" Style="{StaticResource CardStyle}" Visibility="Collapsed">
+                <Grid ColumnSpacing="16" RowSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <FontIcon VerticalAlignment="Top" Margin="0,2,0,0" FontSize="20" Glyph="&#xE8F2;"
+                              Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="Your week" />
+                        <TextBlock x:Name="WeekSubtitle"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="12">
+                        <ProgressRing x:Name="WeekRing" Width="20" Height="20" IsActive="False" />
+                        <Button x:Name="WeekButton" Click="WeekReflect_Click" Content="Reflect on my week" />
+                    </StackPanel>
+                    <TextBlock x:Name="WeekText"
+                               Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2"
+                               IsTextSelectionEnabled="True"
+                               TextWrapping="Wrap"
+                               Visibility="Collapsed" />
+                </Grid>
+            </Border>
+
+            <!-- Stat tiles -->
+            <ItemsRepeater x:Name="StatsRepeater" Margin="0,24,0,0">
+                <ItemsRepeater.Layout>
+                    <UniformGridLayout ItemsStretch="Fill" MinColumnSpacing="12" MinItemWidth="200" MinRowSpacing="12" />
+                </ItemsRepeater.Layout>
+                <ItemsRepeater.ItemTemplate>
+                    <DataTemplate x:DataType="local:Stat">
+                        <Border Style="{StaticResource CardStyle}">
+                            <StackPanel Spacing="4">
+                                <FontIcon HorizontalAlignment="Left" FontSize="20" Glyph="{x:Bind Glyph}"
+                                          Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                                <TextBlock Margin="0,8,0,0" Style="{StaticResource TitleTextBlockStyle}" Text="{x:Bind Value}" />
+                                <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="{x:Bind Label}" />
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsRepeater.ItemTemplate>
+            </ItemsRepeater>
+
+            <Grid Margin="0,12,0,0" ColumnSpacing="12" RowSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Calendar: days with entries are marked with the accent color -->
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel Spacing="12">
+                        <StackPanel Spacing="2">
+                            <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="Days you wrote" />
+                            <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                       Style="{StaticResource CaptionTextBlockStyle}"
+                                       Text="Select a marked day to read what you wrote." />
+                        </StackPanel>
+                        <CalendarView x:Name="Calendar"
+                                      CalendarViewDayItemChanging="Calendar_DayItemChanging"
+                                      SelectedDatesChanged="Calendar_SelectedDatesChanged"
+                                      SelectionMode="Single" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Mood distribution -->
+                <Border Grid.Column="1" Style="{StaticResource CardStyle}" VerticalAlignment="Top">
+                    <StackPanel Spacing="12">
+                        <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="How you've been feeling" />
+                        <ItemsRepeater x:Name="MoodRepeater">
+                            <ItemsRepeater.Layout>
+                                <StackLayout Spacing="12" />
+                            </ItemsRepeater.Layout>
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate x:DataType="local:MoodStat">
+                                    <Grid ColumnSpacing="12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="32" />
+                                            <ColumnDefinition Width="64" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="32" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock FontSize="20" Text="{x:Bind Emoji}" />
+                                        <TextBlock Grid.Column="1" VerticalAlignment="Center" Text="{x:Bind Label}" />
+                                        <ProgressBar Grid.Column="2" VerticalAlignment="Center" Maximum="1" Value="{x:Bind Fraction}" />
+                                        <TextBlock Grid.Column="3" VerticalAlignment="Center" HorizontalAlignment="Right"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                   Text="{x:Bind Count}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
+                        <TextBlock x:Name="NoMoodText"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                   Text="Pick a mood when you write and it'll show up here."
+                                   TextWrapping="Wrap"
+                                   Visibility="Collapsed" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+            <!-- How the chosen focus areas are going -->
+            <Border x:Name="FocusCard" Margin="0,12,0,0" Style="{StaticResource CardStyle}" Visibility="Collapsed">
+                <StackPanel Spacing="12">
+                    <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="Your focus areas this month" />
+                    <ItemsRepeater x:Name="FocusRepeater">
+                        <ItemsRepeater.Layout>
+                            <StackLayout Spacing="8" />
+                        </ItemsRepeater.Layout>
+                        <ItemsRepeater.ItemTemplate>
+                            <DataTemplate x:DataType="local:FocusStat">
+                                <TextBlock Text="{x:Bind Text}" />
+                            </DataTemplate>
+                        </ItemsRepeater.ItemTemplate>
+                    </ItemsRepeater>
+                </StackPanel>
+            </Border>
+
+            <!-- What the journal is mostly about -->
+            <Border x:Name="TopicsCard" Margin="0,12,0,0" Style="{StaticResource CardStyle}" Visibility="Collapsed">
+                <StackPanel Spacing="12">
+                    <TextBlock x:Name="TopicsHeadline" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                    <ItemsRepeater x:Name="TopicsRepeater">
+                        <ItemsRepeater.Layout>
+                            <StackLayout Spacing="12" />
+                        </ItemsRepeater.Layout>
+                        <ItemsRepeater.ItemTemplate>
+                            <DataTemplate x:DataType="local:MoodStat">
+                                <Grid ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="32" />
+                                        <ColumnDefinition Width="140" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="32" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock FontSize="20" Text="{x:Bind Emoji}" />
+                                    <TextBlock Grid.Column="1" VerticalAlignment="Center" Text="{x:Bind Label}" />
+                                    <ProgressBar Grid.Column="2" VerticalAlignment="Center" Maximum="1" Value="{x:Bind Fraction}" />
+                                    <TextBlock Grid.Column="3" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                               Text="{x:Bind Count}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsRepeater.ItemTemplate>
+                    </ItemsRepeater>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

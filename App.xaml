@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Application
+    x:Class="WindowsJournal.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Shared layout tokens (mirrors WinUI Gallery / Windows Settings spacing) -->
+            <Thickness x:Key="PageHeaderMargin">36,24,36,0</Thickness>
+            <Thickness x:Key="PageContentPadding">36,16,36,36</Thickness>
+            <x:Double x:Key="SettingsCardSpacing">4</x:Double>
+
+            <!-- Card surface: the standard Windows 11 layer-on-Mica look -->
+            <Style x:Key="CardStyle" TargetType="Border">
+                <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="{StaticResource OverlayCornerRadius}" />
+                <Setter Property="Padding" Value="16" />
+            </Style>
+
+            <!-- Section header used above groups of cards (same as Settings) -->
+            <Style x:Key="SectionHeaderStyle" TargetType="TextBlock" BasedOn="{StaticResource BodyStrongTextBlockStyle}">
+                <Setter Property="Margin" Value="1,28,0,8" />
+            </Style>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

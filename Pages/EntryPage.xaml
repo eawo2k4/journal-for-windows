@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="WindowsJournal.Pages.EntryPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:helpers="using:WindowsJournal.Helpers"
+    xmlns:models="using:WindowsJournal.Models">
+
+    <Page.Resources>
+        <!-- Lightweight styling: borderless "paper" text boxes for a calm writing surface.
+             The focused background stays the default: on a transparent one the text cursor is almost invisible. -->
+        <ResourceDictionary>
+            <SolidColorBrush x:Key="TextControlBackground" Color="Transparent" />
+            <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="Transparent" />
+            <SolidColorBrush x:Key="TextControlBorderBrush" Color="Transparent" />
+            <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="Transparent" />
+            <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="Transparent" />
+        </ResourceDictionary>
+    </Page.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Toolbar -->
+        <Grid Margin="36,16,36,0" ColumnSpacing="8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <CalendarDatePicker x:Name="DatePicker"
+                                VerticalAlignment="Center"
+                                DateFormat="{}{dayofweek.full}, {month.full} {day.integer}, {year.full}"
+                                DateChanged="DatePicker_DateChanged" />
+            <CommandBar Grid.Column="1"
+                        HorizontalAlignment="Right"
+                        Background="Transparent"
+                        DefaultLabelPosition="Right"
+                        IsOpen="False">
+                <AppBarToggleButton x:Name="FavoriteButton" Label="Favorite">
+                    <AppBarToggleButton.Icon>
+                        <FontIcon Glyph="&#xE734;" />
+                    </AppBarToggleButton.Icon>
+                </AppBarToggleButton>
+                <!-- Basics first: when the window is narrow, the toolbar moves buttons into "..." from the right end. -->
+                <AppBarButton Label="Add photo" Click="AddPhoto_Click">
+                    <AppBarButton.Icon>
+                        <FontIcon Glyph="&#xEB9F;" />
+                    </AppBarButton.Icon>
+                </AppBarButton>
+                <AppBarButton Click="Draw_Click"
+                              Label="Draw"
+                              ToolTipService.ToolTip="Write or sketch with a pen, touch, or mouse. It's added to your entry as a picture.">
+                    <AppBarButton.Icon>
+                        <FontIcon Glyph="&#xEE56;" />
+                    </AppBarButton.Icon>
+                </AppBarButton>
+                <AppBarToggleButton x:Name="DictateButton"
+                                    Click="Dictate_Click"
+                                    Label="Dictate"
+                                    ToolTipService.ToolTip="Speak your entry. It's turned into text on this PC.">
+                    <AppBarToggleButton.Icon>
+                        <FontIcon Glyph="&#xE720;" />
+                    </AppBarToggleButton.Icon>
+                </AppBarToggleButton>
+                <AppBarSeparator />
+                <AppBarButton x:Name="FormatButton"
+                              Label="Improve"
+                              ToolTipService.ToolTip="Fix errors or polish your wording">
+                    <AppBarButton.Icon>
+                        <FontIcon Glyph="&#xE8D2;" />
+                    </AppBarButton.Icon>
+                    <AppBarButton.Flyout>
+                        <MenuFlyout x:Name="FormatMenu" Opening="FormatMenu_Opening" Placement="Bottom">
+                            <MenuFlyoutItem Click="FormatSimple_Click"
+                                            Text="Fix errors"
+                                            ToolTipService.ToolTip="Fix spelling, punctuation, and paragraphs. Your words stay the same.">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xE8D2;" />
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                            <MenuFlyoutItem x:Name="FormatExpressiveItem"
+                                            Click="FormatExpressive_Click"
+                                            Text="Polish wording"
+                                            ToolTipService.ToolTip="Polish the wording so it flows, keeping your voice and every detail.">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xE790;" />
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                        </MenuFlyout>
+                    </AppBarButton.Flyout>
+                </AppBarButton>
+                <AppBarButton x:Name="InspireButton"
+                              Click="Inspire_Click"
+                              Label="Inspire me"
+                              ToolTipService.ToolTip="Get a question to help you keep writing">
+                    <AppBarButton.Icon>
+                        <FontIcon Glyph="&#xE82F;" />
+                    </AppBarButton.Icon>
+                </AppBarButton>
+                <AppBarButton x:Name="ReflectButton"
+                              Click="Reflect_Click"
+                              Label="Reflect"
+                              ToolTipService.ToolTip="Get a short reflection on what you wrote">
+                    <AppBarButton.Icon>
+                        <FontIcon Glyph="&#xE8F2;" />
+                    </AppBarButton.Icon>
+                </AppBarButton>
+                <CommandBar.SecondaryCommands>
+                    <AppBarButton x:Name="DeleteButton" Label="Delete entry" Click="Delete_Click">
+                        <AppBarButton.Icon>
+                            <FontIcon Glyph="&#xE74D;" />
+                        </AppBarButton.Icon>
+                    </AppBarButton>
+                </CommandBar.SecondaryCommands>
+            </CommandBar>
+            <Button Grid.Column="2"
+                    VerticalAlignment="Center"
+                    Click="Done_Click"
+                    Content="Done"
+                    Style="{StaticResource AccentButtonStyle}">
+                <Button.KeyboardAccelerators>
+                    <KeyboardAccelerator Key="S" Modifiers="Control" />
+                </Button.KeyboardAccelerators>
+            </Button>
+        </Grid>
+
+        <ScrollViewer Grid.Row="1" SizeChanged="EntryScroller_SizeChanged">
+            <StackPanel x:Name="EntryColumn" MaxWidth="820" Padding="36,8,36,48" Spacing="12">
+
+                <InfoBar x:Name="PromptBar"
+                         IsClosable="False"
+                         IsOpen="False"
+                         Severity="Informational"
+                         Title="Prompt">
+                    <InfoBar.IconSource>
+                        <FontIconSource Glyph="&#xE82F;" />
+                    </InfoBar.IconSource>
+                </InfoBar>
+
+                <!-- AI progress / result, with Undo -->
+                <InfoBar x:Name="AiBar" IsOpen="False">
+                    <InfoBar.ActionButton>
+                        <Button x:Name="AiUndoButton" Click="AiUndo_Click" Content="Undo" />
+                    </InfoBar.ActionButton>
+                    <InfoBar.Content>
+                        <ProgressBar x:Name="AiProgress" Margin="0,0,0,8" IsIndeterminate="True" Visibility="Collapsed" />
+                    </InfoBar.Content>
+                </InfoBar>
+
+                <TextBox x:Name="TitleBox"
+                         Padding="0,8"
+                         FontSize="28"
+                         FontWeight="SemiBold"
+                         PlaceholderText="Title"
+                         TextChanged="Content_TextChanged" />
+
+                <!-- Mood and topic: filled in by AI after saving; click to choose your own. -->
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <DropDownButton x:Name="MoodButton" AutomationProperties.Name="Mood">
+                        <DropDownButton.Flyout>
+                            <MenuFlyout x:Name="MoodMenu" />
+                        </DropDownButton.Flyout>
+                    </DropDownButton>
+                    <DropDownButton x:Name="CategoryButton" AutomationProperties.Name="Topic">
+                        <DropDownButton.Flyout>
+                            <MenuFlyout x:Name="CategoryMenu" />
+                        </DropDownButton.Flyout>
+                    </DropDownButton>
+                </StackPanel>
+
+                <!-- Photos -->
+                <GridView x:Name="PhotosGrid" SelectionMode="None" Visibility="Collapsed">
+                    <GridView.ItemTemplate>
+                        <DataTemplate x:DataType="models:PhotoItem">
+                            <Border Width="140" Height="140" CornerRadius="{StaticResource OverlayCornerRadius}">
+                                <Border.ContextFlyout>
+                                    <MenuFlyout>
+                                        <MenuFlyoutItem Click="RemovePhoto_Click" Tag="{x:Bind}" Text="Remove photo">
+                                            <MenuFlyoutItem.Icon>
+                                                <FontIcon Glyph="&#xE74D;" />
+                                            </MenuFlyoutItem.Icon>
+                                        </MenuFlyoutItem>
+                                    </MenuFlyout>
+                                </Border.ContextFlyout>
+                                <Image Source="{x:Bind helpers:Converters.ToImage(Path)}" Stretch="UniformToFill" />
+                            </Border>
+                        </DataTemplate>
+                    </GridView.ItemTemplate>
+                </GridView>
+
+                <!-- Formatting bar. AllowFocusOnInteraction keeps the cursor and selection in the text. -->
+                <StackPanel x:Name="FormatBar" Orientation="Horizontal" Spacing="2">
+                    <StackPanel.Resources>
+                        <SolidColorBrush x:Key="ToggleButtonBackground" Color="Transparent" />
+                        <SolidColorBrush x:Key="ToggleButtonBorderBrush" Color="Transparent" />
+                        <Style TargetType="ToggleButton" BasedOn="{StaticResource DefaultToggleButtonStyle}">
+                            <Setter Property="AllowFocusOnInteraction" Value="False" />
+                            <Setter Property="Width" Value="36" />
+                            <Setter Property="Height" Value="32" />
+                            <Setter Property="Padding" Value="0" />
+                        </Style>
+                    </StackPanel.Resources>
+                    <ToggleButton x:Name="HeadingToggle" AutomationProperties.Name="Heading" Click="Heading_Click" ToolTipService.ToolTip="Heading">
+                        <TextBlock FontWeight="SemiBold" Text="H" />
+                    </ToggleButton>
+                    <ToggleButton x:Name="BoldToggle" AutomationProperties.Name="Bold" Click="Bold_Click" ToolTipService.ToolTip="Bold (Ctrl+B)">
+                        <FontIcon FontSize="14" Glyph="&#xE8DD;" />
+                    </ToggleButton>
+                    <ToggleButton x:Name="ItalicToggle" AutomationProperties.Name="Italic" Click="Italic_Click" ToolTipService.ToolTip="Italic (Ctrl+I)">
+                        <FontIcon FontSize="14" Glyph="&#xE8DB;" />
+                    </ToggleButton>
+                    <ToggleButton x:Name="UnderlineToggle" AutomationProperties.Name="Underline" Click="Underline_Click" ToolTipService.ToolTip="Underline (Ctrl+U)">
+                        <FontIcon FontSize="14" Glyph="&#xE8DC;" />
+                    </ToggleButton>
+                    <ToggleButton x:Name="BulletsToggle" AutomationProperties.Name="Bulleted list" Click="Bullets_Click" ToolTipService.ToolTip="Bulleted list">
+                        <FontIcon FontSize="14" Glyph="&#xE8FD;" />
+                    </ToggleButton>
+                    <ToggleButton x:Name="NumbersToggle" AutomationProperties.Name="Numbered list" Click="Numbers_Click" ToolTipService.ToolTip="Numbered list">
+                        <TextBlock FontSize="13" Text="1." />
+                    </ToggleButton>
+                </StackPanel>
+
+                <RichEditBox x:Name="BodyBox"
+                             MinHeight="320"
+                             Padding="0,8"
+                             FontSize="16"
+                             IsSpellCheckEnabled="True"
+                             Paste="BodyBox_Paste"
+                             PlaceholderText="Start writing…"
+                             PreviewKeyDown="BodyBox_PreviewKeyDown"
+                             SelectionChanged="BodyBox_SelectionChanged"
+                             TextChanged="BodyBox_TextChanged"
+                             TextWrapping="Wrap" />
+
+                <TextBlock x:Name="WordCountText"
+                           Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                           Style="{StaticResource CaptionTextBlockStyle}" />
+
+                <!-- AI reflection, saved with the entry -->
+                <Border x:Name="ReflectionCard"
+                        Margin="0,12,0,0"
+                        Style="{StaticResource CardStyle}"
+                        Visibility="Collapsed">
+                    <Grid ColumnSpacing="12" RowSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <FontIcon VerticalAlignment="Center" FontSize="16" Glyph="&#xE8F2;"
+                                  Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                        <TextBlock Grid.Column="1" VerticalAlignment="Center"
+                                   Style="{StaticResource BodyStrongTextBlockStyle}" Text="Reflection" />
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4">
+                            <Button Click="Reflect_Click"
+                                    AutomationProperties.Name="New reflection"
+                                    Style="{StaticResource SubtleButtonStyle}"
+                                    ToolTipService.ToolTip="New reflection">
+                                <FontIcon FontSize="14" Glyph="&#xE72C;" />
+                            </Button>
+                            <Button Click="RemoveReflection_Click"
+                                    AutomationProperties.Name="Remove reflection"
+                                    Style="{StaticResource SubtleButtonStyle}"
+                                    ToolTipService.ToolTip="Remove reflection">
+                                <FontIcon FontSize="14" Glyph="&#xE711;" />
+                            </Button>
+                        </StackPanel>
+                        <TextBlock x:Name="ReflectionText"
+                                   Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2"
+                                   IsTextSelectionEnabled="True"
+                                   TextWrapping="Wrap" />
+                    </Grid>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>

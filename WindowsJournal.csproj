@@ -1,0 +1,53 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.22621.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
+    <RootNamespace>WindowsJournal</RootNamespace>
+    <AssemblyName>WindowsJournal</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Platforms>x64;ARM64</Platforms>
+    <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">win-x64</RuntimeIdentifier>
+    <UseWinUI>true</UseWinUI>
+    <!-- Two ways to build:
+         - Default: unpackaged, so `dotnet run` and the "Try Journal as a new user" launchers just work.
+         - Packaged (MSIX), the way it ships: dotnet build -c Release -p:Packaged=true
+           (Start menu entry, clean install/uninstall, reminders, and Windows AI on Copilot+ PCs). -->
+    <WindowsPackageType Condition="'$(Packaged)' != 'true'">None</WindowsPackageType>
+    <EnableMsixTooling>true</EnableMsixTooling>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <!-- Program.cs provides Main so Journal runs as a single instance (see there). -->
+    <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Version>0.9.13</Version>
+    <ApplicationIcon>Assets\Journal.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <!-- Keep the packaged build apart from the unpackaged one the launchers run. -->
+  <PropertyGroup Condition="'$(Packaged)' == 'true'">
+    <OutputPath>bin\Packaged\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\Packaged\$(Configuration)\</IntermediateOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\*.ico;Assets\*.png;Assets\Welcome\*.jpg;Assets\Package\*.png;Assets\Widget\*.png;Public\*" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Editing sources (original art, generator scripts) aren't part of the app. -->
+    <Content Remove="Assets\Source\**" />
+    <None Remove="Assets\Source\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls" Version="8.2.251219" />
+    <PackageReference Include="Microsoft.AI.Foundry.Local" Version="2.2.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.14" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2957" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.6.4" />
+    <PackageReference Include="NAudio.WinMM" Version="3.3.0" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.14" />
+  </ItemGroup>
+
+</Project>
