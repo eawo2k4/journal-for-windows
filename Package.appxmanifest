@@ -11,7 +11,7 @@
 
   <!-- For the Store, replace Name/Publisher with the values Partner Center gives you.
        Bump Version whenever this file changes, or Windows won't re-register the package. -->
-  <Identity Name="WindowsJournal" Publisher="CN=eawo2k4" Version="1.0.0.0" />
+  <Identity Name="WindowsJournal" Publisher="CN=eawo2k4" Version="1.0.1.0" />
 
   <Properties>
     <DisplayName>Journal</DisplayName>

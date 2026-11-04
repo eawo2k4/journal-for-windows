@@ -76,10 +76,8 @@ public sealed partial class MainWindow : Window
     private void MainWindow_Activated(object sender, WindowActivatedEventArgs args)
     {
         // Dim the title text when the window is inactive, like inbox apps do.
-        AppTitleText.Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources[
-            args.WindowActivationState == WindowActivationState.Deactivated
-                ? "TextFillColorTertiaryBrush"
-                : "TextFillColorPrimaryBrush"];
+        // Opacity, not a brush: looking one up in the app's resources would use Windows' theme, not the theme picked in Settings.
+        AppTitleText.Opacity = args.WindowActivationState == WindowActivationState.Deactivated ? 0.55 : 1;
 
         PromptIfNeeded(args.WindowActivationState);
         UpdateAutoLock(args.WindowActivationState);
