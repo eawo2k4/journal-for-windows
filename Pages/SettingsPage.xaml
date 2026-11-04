@@ -82,7 +82,7 @@
                     <ComboBoxItem Content="Only when Journal opens" Tag="0" />
                 </ComboBox>
             </toolkit:SettingsCard>
-            <toolkit:SettingsCard Description="Your entries and photos are encrypted with your Windows account and stored only on this PC. Other accounts can't read them, and nothing is uploaded."
+            <toolkit:SettingsCard Description="Your entries and photos are encrypted with your Windows account and stored on this PC. Other accounts can't read them, and Journal doesn't upload them."
                                   Header="Encrypted on this PC">
                 <toolkit:SettingsCard.HeaderIcon>
                     <FontIcon Glyph="&#xE72E;" />
@@ -204,7 +204,7 @@
                 <toolkit:SettingsExpander.Items>
                     <toolkit:SettingsCard Description="Open source under the MIT license. Built with WinUI 3 and the Windows App SDK."
                                           Header="Made by eawo2k4">
-                        <HyperlinkButton Content="GitHub" NavigateUri="https://github.com/eawo2k4" />
+                        <HyperlinkButton Content="GitHub" NavigateUri="https://github.com/eawo2k4/journal-for-windows" />
                     </toolkit:SettingsCard>
                 </toolkit:SettingsExpander.Items>
             </toolkit:SettingsExpander>

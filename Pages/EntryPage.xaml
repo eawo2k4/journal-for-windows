@@ -32,6 +32,7 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <CalendarDatePicker x:Name="DatePicker"
+                                AutomationProperties.Name="Entry date"
                                 VerticalAlignment="Center"
                                 DateFormat="{}{dayofweek.full}, {month.full} {day.integer}, {year.full}"
                                 DateChanged="DatePicker_DateChanged" />

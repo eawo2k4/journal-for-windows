@@ -1,94 +1,122 @@
-# Windows Journal
+<p align="center">
+  <img src="Assets/Journal-256.png" width="120" alt="Journal app icon">
+</p>
 
-A private, on-device journaling app for Windows 11, in the spirit of Apple Journal / Google's Journal app — built the way an inbox Windows app would be: WinUI 3, Windows App SDK, Fluent Design.
+<h1 align="center">Journal for Windows</h1>
 
-## Try it as a new user
+<p align="center">
+  <strong>A private place to reflect on your days.</strong><br>
+  A journaling app built for Windows 11, with AI that runs on your own PC.
+</p>
 
-Build once with `dotnet build -c Release`, then double-click one of the launchers in the folder above this one:
+<p align="center">
+  <a href="#install"><img src="https://img.shields.io/github/v/release/eawo2k4/journal-for-windows?label=Download&style=for-the-badge&color=7350AF" alt="Download"></a>
+  <img src="https://img.shields.io/badge/Windows%2011-x64-0067C0?style=for-the-badge" alt="Windows 11, x64">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-555555?style=for-the-badge" alt="MIT license"></a>
+</p>
 
-- **Try Journal as a new user.cmd**: empty journal, welcome slideshow, default settings. Uses its own test folder (`%LOCALAPPDATA%\WindowsJournal-FreshTest`), which is wiped every run, so your real journal is never touched. AI uses the model already on the PC.
-- **Try Journal as a new user (no AI model).cmd**: same, but AI starts as "not downloaded" so you see Settings > AI > Download. Downloading really fetches about 4 GB into `%LOCALAPPDATA%\WindowsJournal-FreshTest-AI`, which is kept between runs; delete it to free the space.
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/journal-dark.png">
+    <img src="docs/images/journal-light.png" width="820" alt="Journal showing writing suggestions and a timeline of entries">
+  </picture>
+</p>
 
-## Install (packaged, the way it ships)
+## Why Journal
 
-Turn on **Developer Mode** (Settings > System > Advanced, or "For developers"), then double-click **Install Journal.cmd** in the folder above this one. It builds the MSIX and installs it for your account: Journal appears in the Start menu, uninstalls normally, and can send daily reminders. **Uninstall Journal.cmd** removes it.
+| | |
+|---|---|
+| 🔒 **Private by design** | Entries and photos are encrypted with your Windows account and stored on your PC. Add Windows Hello for an extra lock. |
+| ✨ **AI that stays on your PC** | Fix errors, polish your wording, and get reflections, with your entries processed on your own device. It's optional. |
+| ✍️ **Capture it your way** | Type, dictate, draw with a pen, add photos, or share from another app. Everything saves as you write. |
+| 💡 **Never stuck for words** | Writing suggestions shaped by what you want to focus on, plus memories from past years. |
+| 📅 **See your progress** | Streaks, a calendar of the days you wrote, and your moods and topics over time. |
+| 🧩 **On your Widgets board** | Today's prompt and your week at a glance, on the Widgets board and lock screen. |
+| 💾 **Backups you control** | Encrypted automatic backups to any folder, including OneDrive, that you can restore with a recovery key. |
 
-- On the first install, the script copies the journal from the unpackaged version (`%LOCALAPPDATA%\WindowsJournal`) into the installed app's data folder; the app encrypts it on first launch. The original stays where it was. (The installed app can't copy it itself: Windows hides other AppData folders from packaged apps.)
-- Like any installed app, its data is deleted when it's uninstalled. Export first (Settings > Your data > Export) if you want a copy.
-- Only one Journal window runs at a time: launching it again, or clicking a reminder, brings the open window forward (`Program.cs`).
+<table>
+  <tr>
+    <td width="50%">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="docs/images/entry-dark.png">
+        <img src="docs/images/entry-light.png" alt="An entry with its mood, topic and an AI reflection">
+      </picture>
+      <p align="center"><strong>Write, and get a gentle reflection</strong></p>
+    </td>
+    <td width="50%">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="docs/images/insights-dark.png">
+        <img src="docs/images/insights-light.png" alt="Insights with streaks, a calendar and moods">
+      </picture>
+      <p align="center"><strong>See how your writing is going</strong></p>
+    </td>
+  </tr>
+</table>
 
-When `Package.appxmanifest` changes (capabilities, extensions), bump `Version` there (and `<Version>` in the .csproj), or Windows refuses to re-register the package over the installed one.
+<sub>Screenshots use made-up entries.</sub>
 
-By hand: `dotnet build -c Release -p:Packaged=true`, then `Add-AppxPackage -Register bin\Packaged\Release\net10.0-windows10.0.22621.0\win-x64\AppxManifest.xml`. For the Store, set `Identity` in `Package.appxmanifest` to the values Partner Center gives you and package with `dotnet publish` / Visual Studio's "Package and Publish".
+## Install
 
-## Run (unpackaged, for development)
+You'll need **Windows 11 on an x64 PC**. Journal is a free hobby project without a paid signing certificate, so there's one extra step the first time.
 
-Requires the .NET 10 SDK on Windows 10 1904x or later (Windows 11 recommended for Mica).
+**1. Download these two files**
 
-```
-dotnet run
-```
+- [JournalForWindows.appinstaller](https://github.com/eawo2k4/journal-for-windows/releases/latest/download/JournalForWindows.appinstaller)
+- [JournalForWindows.cer](https://github.com/eawo2k4/journal-for-windows/releases/latest/download/JournalForWindows.cer)
 
-The default build is **unpackaged and self-contained** (`WindowsAppSDKSelfContained=true`), so no install, Developer Mode, or signing is needed while developing, and the "Try Journal as a new user" launchers use it. Daily reminders and Windows AI need the packaged build. Packaged output goes to `bin\Packaged`, so the two never overwrite each other.
+**2. Trust the certificate, once**
 
-> Keep the project in a short path (e.g. `C:\src\WindowsJournal`). The XAML compiler fails with `WMC9999 Could not find a part of the path` when paths exceed 260 characters.
+Open the Start menu, type `PowerShell`, and select **Run as administrator**. Then run this, changing the path if your downloads go elsewhere:
 
-## Features
-
-| Area | What it does | Windows 11 pattern used |
-|---|---|---|
-| Shell | Mica backdrop, custom tall title bar, left nav pane, search box in the pane | `MicaBackdrop`, `ExtendsContentIntoTitleBar`, `NavigationView` |
-| Journal | Timeline grouped by month, cards with mood, favorite star and photo thumbnail | `ListView` + `CollectionViewSource` grouping, card brushes |
-| Suggestions | Random writing prompts (personalized by on-device AI when available), "New ideas", and an "On this day" memory | Horizontal `ItemsRepeater` of buttons |
-| Editor | Title, body, date, mood, photos, favorite; Format, Inspire me, Reflect; autosaves on leave; Ctrl+N / Ctrl+S | `CommandBar`, `MenuFlyout`, `CalendarDatePicker`, `InfoBar` with Undo, lightweight styling |
-| AI | Improve > **Fix errors** (spelling and punctuation only) or **Polish wording** (keeps voice and facts); Inspire me asks a follow-up question; Reflect writes a short reflection saved with the entry; Insights reflects on your week; suggestions build on recent entries | Windows AI `LanguageModel` (Phi Silica) on Copilot+ PCs, Microsoft Foundry Local elsewhere |
-| Welcome | First-run slideshow (5 slides): illustrations drawn in XAML from theme resources over the Windows 11 Bloom backdrop (light/dark), with an optional Windows Hello toggle; replay from Settings | `ContentDialog`, `FlipView`, `PipsPager`, `ImageBrush` in theme dictionaries |
-| Insights | Current/longest streak, entries, words, days journaled, calendar heatmap, mood breakdown | `CalendarView` density colors, `UniformGridLayout` |
-| Privacy | Entries and photos encrypted at rest with the Windows account; optional Windows Hello lock (offered in the welcome slideshow, like Apple's and Google's journal apps); data never leaves the PC | DPAPI (`ProtectedData`), `UserConsentVerifierInterop` |
-| Settings | Theme, lock, data folder, JSON export, about | `SettingsCard` / `SettingsExpander` (Community Toolkit), same as Windows Settings |
-
-Data lives in `%LOCALAPPDATA%\WindowsJournal`: `entries.dat` and `Photos\` are encrypted with DPAPI (current user), `settings.json` holds preferences only. Journals from older versions (plain `entries.json`) are encrypted on first launch and the plain copy is deleted. If a saved file can't be read (for example, copied from another Windows account), it's moved aside and the Journal page says where, rather than being overwritten. Set `WINDOWSJOURNAL_DATA` to another folder to test with a throwaway journal.
-
-## On-device AI
-
-AI is optional and never sends journal text to the cloud. Nothing extra needs installing. `Services/AIService.cs` picks a provider at startup:
-
-1. **Windows AI (Phi Silica)** on Copilot+ PCs: built into Windows, no download. Note: the Windows AI APIs need package identity, so this path lights up once the app is packaged as MSIX.
-2. **Built-in model** on any other PC: Journal hosts Phi-4 mini in-process with the [Foundry Local SDK](https://www.nuget.org/packages/Microsoft.AI.Foundry.Local) (`Microsoft.AI.Foundry.Local` 2.2.1). The user downloads it once from **Settings > AI > Download** (about 4 GB, with progress and Cancel, and it keeps going if they leave Settings). If the Foundry Local app is already installed, its model cache (`~\.foundry\cache\models`) is reused instead of downloading a second copy. AI runtime files live in `%LOCALAPPDATA%\WindowsJournal\AI` (`WINDOWSJOURNAL_AI` overrides this for testing the download from scratch).
-
-   Measured on a Ryzen 9 5900X + RTX 3060: the model is prepared in the background after launch (~15-25s), then Format/Reflect/Inspire take 1–3 seconds. Left alone, the SDK re-downloads every GPU runtime on every launch, including ones that can never load (CUDA without NVIDIA's CUDA toolkit), and that download can stall. So Journal registers runtimes one at a time with a 2-minute limit each, tries CUDA last, and records ones that genuinely fail to load in `AI\unusable-eps.txt` so they're skipped from then on. Delete that file to retry them (for example, after installing the CUDA toolkit).
-
-   SDK notes: `OpenAIChatClient` is marked obsolete in favor of `ChatSession`, but in 2.2.1 `ChatSession` took ~47s for a reply `OpenAIChatClient` returns in ~2s, so Journal keeps the older API (warning suppressed with a comment). The package is pinned; switch when a later SDK fixes `ChatSession`'s speed.
-
-AI errors (never journal text) are written to `ai.log`, and unexpected crashes to `crash.log`, in the data folder.
-
-Without either, Fix errors falls back to rule-based cleanup (`TextFormatter`) and suggestions use the built-in prompt list.
-
-## Before you share or publish
-
-The welcome slideshow's backdrop is Microsoft's Windows 11 "Bloom" wallpaper (`Assets/Source/bloom-light.jpg` and `bloom-dark.jpg`), used here for a personal build. Microsoft doesn't license its wallpapers for redistribution inside other apps, so replace them with original artwork before sharing the app or submitting it to the Microsoft Store:
-
-1. Put the new light and dark images in `Assets/Source/` with the same names (any size; keep the subject roughly centered, since the slides show the middle band).
-2. Run `powershell -ExecutionPolicy Bypass -File Assets\Source\make-welcome-backgrounds.ps1`. It writes the softly blurred 1280-px versions the app ships in `Assets/Welcome/` (pass `-Radius` to change the softness; default 14). Files in `Assets/Source/` aren't shipped.
-
-## Project layout
-
-```
-App.xaml(.cs)          Theme resources, startup
-MainWindow.xaml(.cs)   Title bar, navigation, search, Windows Hello lock, welcome slideshow launch
-Pages/                 JournalPage, EntryPage, InsightsPage, SettingsPage
-Controls/              WelcomeDialog (first-run slideshow)
-Models/                JournalEntry, Mood, grouping types
-Services/              JournalStore (encrypted storage), DataProtection (DPAPI), SettingsService, SuggestionService,
-                       AIService (Windows AI / Foundry Local), TextFormatter (non-AI fallback)
-Helpers/               x:Bind helper functions
-Assets/                App icon; Assets/Source/make-icon.ps1 regenerates it
+```powershell
+Import-Certificate -FilePath "$HOME\Downloads\JournalForWindows.cer" -CertStoreLocation Cert:\LocalMachine\TrustedPeople
 ```
 
-## Ideas for next steps
+This tells your PC to trust apps signed with this project's certificate. If you'd rather not do that, you can [build Journal yourself](docs/DEVELOPING.md).
 
-- Richer suggestions from Photos / calendar / recent activity (opt-in, on-device)
-- Dictation in more languages (today's voice model is English only; `nemotron-3.5-asr-streaming` and Whisper are multilingual)
-- MVVM with CommunityToolkit.Mvvm once the pages grow
+**3. Install**
 
-Done: Share to Journal (`Services\SharedContent.cs`: text, links and pictures from another app's Share become a new draft entry), drawing (`Controls\SketchDialog.cs`, editor > Draw: pen, touch or mouse, saved as an encrypted picture with the entry; the Windows App SDK has no InkCanvas, so there's no handwriting recognition), automatic updates (`Tools\Build-Msix.ps1` writes an `.appinstaller`; people who install from it get updates from the latest GitHub release), two widgets for the Widgets board and lock screen (`Widgets\`: Journal prompt shows a built-in prompt, and Journal progress shows the days written this week and any streak of 2 days or more; both have a Write button and never show entry text; they aren't customizable because on Windows build 26340 the board opens its Customize window but never calls `OnCustomizationRequested`; a windowless helper serves it, staying up while a widget is pinned and exiting within about a minute once none are), encrypted automatic backups (`Services\BackupService.cs`, `BackupCrypto.cs`, Settings > Your data > Automatic backups: `.journalbackup` files in a chosen folder, AES-256-GCM with a key derived by HKDF from a random 160-bit secret, shown once as a recovery key and remembered on the PC with DPAPI, so they're safe in OneDrive and open on any PC with the key; keeps the newest 5, deleting only its own files; restoring goes through Import, which only adds entries, so this is backup and restore rather than two-way sync; built in memory, so journals over about 1.5 GB need Export instead), automatic lock (Settings > Lock automatically: with Windows Hello on, the window locks after 1 to 30 minutes in the background, default 5, saving the open entry first; Hello opens by itself when Journal starts locked or you return to it, and canceling leaves the Unlock button), a clickable calendar (Insights: a marked day opens its entry, or lists them if there are several), topic and mood filters on the entry list, focus areas (`Controls\FocusPicker.cs`, in the welcome slideshow and Settings > Focus areas: picked topics are saved in `FocusAreas`, up to 3 of 4 built-in suggestions come from them, AI suggestions are asked to lean toward them, and Insights counts this month's entries for each), drafts and autosave (the editor saves after a 2-second pause in typing; new entries stay `IsDraft` until Done, listed under Drafts and left out of streaks, Insights, reminders, the widget and AI analysis), automatic insights (`Services\EntryInsights.cs`: after saving, on-device AI detects mood and one of nine topics and writes a reflection, shown on timeline cards and in the editor; hand-picked values and removed reflections are respected, unchanged entries aren't re-analyzed, older entries are filled in up to 20 per launch, and Settings > Automatic insights turns it off; Insights shows the topic breakdown), rich text (`RichEditBox` with bold, italic, underline, headings and lists; `Body` stays plain text for search, previews and AI, and formatting is saved as Markdown in `RichBody` only when an entry has any, because RTF stores colors that break between light and dark mode, so older entries need no conversion. Pasted text comes in plain. AI Format works line by line on formatted entries, so headings and lists can't be lost, and a line whose styling the model drops keeps its original text), encryption at rest (always on, not just with the lock), AI weekly reflections (Insights > Your week), MSIX packaging, full backups (Settings > Export: a .zip with `entries.json`, decrypted `photos/`, and a README; "Entries only (JSON)" is still offered), restoring them (Settings > Import: only adds entries, matched by ID, so nothing is deleted or overwritten and importing twice is harmless; shows what it will add before doing it; photos are re-encrypted), dictation (editor > Dictate: live, on-device speech-to-text with `nemotron-speech-streaming-en-0.6b` through the Foundry Local SDK's live transcription, ~700 MB one-time download, text only, no audio kept; microphone via NAudio; set `WINDOWSJOURNAL_TEST_AUDIO` to a 16 kHz mono WAV to test the unpackaged build without a mic), and daily reminders (Settings > Reminders: scheduled notifications delivered by Windows even when Journal is closed, skipped on days you've already written; "Write now" opens a new entry).
+Double-click `JournalForWindows.appinstaller`, then select **Install**. Installing this way lets Windows check for new versions and offer updates automatically. You can also download [the package](https://github.com/eawo2k4/journal-for-windows/releases/latest/download/JournalForWindows-x64.msix) directly, but it won't update itself.
+
+<details>
+<summary><strong>If it won't install</strong></summary>
+
+- **Blocked by Smart App Control:** this Windows security feature can block apps without a trusted paid signature. Journal can't get around it, and whether to change that setting is up to you.
+- **"Publisher certificate could not be verified":** step 2 didn't complete. Check that it ran as administrator and printed a line with `CN=eawo2k4`.
+
+</details>
+
+<details>
+<summary><strong>Uninstalling</strong></summary>
+
+Uninstall from **Settings > Apps > Installed apps**. **This also deletes your journal**, so back it up first with Settings > Your data > Export or Automatic backups.
+
+To remove the certificate too, run this as administrator:
+
+```powershell
+Get-ChildItem Cert:\LocalMachine\TrustedPeople | Where-Object Subject -eq 'CN=eawo2k4' | Remove-Item
+```
+
+</details>
+
+## Good to know
+
+- **Early release:** this is a hobby project, so expect some rough edges. So far it's mainly been tested on one PC. Please [report what you find](https://github.com/eawo2k4/journal-for-windows/issues).
+- **AI is optional:** the writing model is a one-time download of about 4 GB from Settings, and dictation downloads a separate model of about 700 MB. It can make mistakes, so read what it writes.
+- **Dictation** is English only for now.
+- **Draw** saves your writing as a picture, so handwriting isn't searchable.
+- **Back up your journal:** Journal can't recover entries without your Windows account or your backup recovery key. Nobody can reset that key.
+
+## Your privacy
+
+Your entries stay on your PC unless you choose to copy them somewhere else. Journal has no account, no ads, and no analytics of its own. It does use the internet for model downloads and update checks. [Read the privacy details](PRIVACY.md).
+
+## For developers
+
+Built with WinUI 3, the Windows App SDK, and .NET 10. See the [developer guide](docs/DEVELOPING.md).
+
+## License
+
+The code is under the [MIT license](LICENSE). The Windows 11 Bloom artwork in the welcome tour and other third-party components aren't covered by it. See the [third-party notices](THIRD-PARTY-NOTICES.md).
+
+Journal for Windows is an independent project, and isn't made or endorsed by Microsoft.
